@@ -1,0 +1,41 @@
+# Експеримент для SECRETS.md (питання 1): що маскування секретів приховує
+# в логах, а що ні. Використовується одноразовий секрет DEMO_SECRET
+# (випадковий рядок), а не справжній токен.
+name: Masking demo
+
+on:
+  push:
+    branches:
+      - "experiment/masking"
+
+permissions:
+  contents: read
+
+jobs:
+  mask:
+    runs-on: ubuntu-latest
+    env:
+      DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
+    steps:
+      - name: 1. Пряме виведення
+        run: echo "Секрет: $DEMO_SECRET"
+
+      - name: 2. Посимвольно, через пробіли
+        run: echo "$DEMO_SECRET" | sed 's/./& /g'
+
+      - name: 3. Base64
+        run: printf '%s' "$DEMO_SECRET" | base64
+
+      - name: 4. Задом наперед
+        run: printf '%s' "$DEMO_SECRET" | rev
+
+      - name: 5. Частина рядка
+        run: echo "${DEMO_SECRET:0:6}"
+
+      - name: 6. Через файл-артефакт
+        run: printf '%s' "$DEMO_SECRET" > leaked.txt
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: leaked
+          path: leaked.txt
