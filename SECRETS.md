@@ -127,19 +127,42 @@ Workflow `masking-demo.yml` у гілці `experiment/masking`, RUN 42469794683.
 
 ### 2. Форки
 
-<!-- TODO: додати номер PR з форку однокурсника та посилання на запуск -->
-_Експеримент з форком однокурсника: буде додано після запуску._
+Експеримент: з другого акаунта `petrovartom` зроблено форк
+`petrovartom/Pract`, змінено `README.md` і відкрито
+[PR #3](https://github.com/petrovartom15-source/Pract/pull/3) у `main`.
 
-Що відбувається з `notify` при PR з форку і чому:
+Що сталося:
+
+1. **Workflow не запустився сам.** Під PR з'явилася позначка
+   «First-time contributor» і блок «1 workflow awaiting approval: This
+   workflow requires approval from a maintainer» з кнопкою *Approve
+   workflows to run*. Запуск мав статус `action_required`, доки я (власник)
+   його не схвалив (скриншот додано до здачі).
+2. **Після схвалення** (RUN 42471282195, `head_repository:
+   petrovartom/Pract`): `lint`, `format`, `test` = `success`,
+   `notify` = `skipped`. Права `GITHUB_TOKEN` у лозі:
+   ```
+   GITHUB_TOKEN Permissions
+   Contents: read
+   Metadata: read
+   ```
+3. Окремо: перший схвалений запуск (RUN 42471076165) узяв старий
+   `ci.yml` з `main`, де ще не було `notify`, бо merge-коміт
+   `refs/pull/3/merge` був зібраний до злиття PR #2. Після *Update branch*
+   PR отримав актуальний workflow.
+
+Чому `notify` не може отримати токен у PR з форку, навіть якщо автор PR
+змінить `ci.yml` у своїй гілці (для `pull_request` виконується саме
+версія workflow з PR, тож умова `if:` сама по собі не захищає):
 
 - Для події `pull_request` з форку GitHub **не передає секрети** (окрім
   `GITHUB_TOKEN`, і той лише з правами на читання). Секретні змінні
   порожні, і `notify` до відправки не доходить.
 - Для автора, який робить внесок уперше, запуск workflow взагалі чекає
   ручного схвалення власника.
-- У нашому workflow `notify` поза пушем у `main` має статус `skipped`, а
-  оточення `notifications` все одно відхилило б `refs/pull/N/merge` (див.
-  частину 4).
+- Токен існує лише в оточенні `notifications`, а воно відхиляє
+  `refs/pull/N/merge` (див. частину 4). На рівні репозиторію секрету
+  більше немає.
 
 Чому так: у PR з форку виконується код, написаний сторонньою людиною
 (тести, `pyproject.toml`, сам workflow-файл). Якби він отримував секрети,
