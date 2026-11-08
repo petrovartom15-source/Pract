@@ -18,7 +18,7 @@ jobs:
       DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
     steps:
       - name: 1. Пряме виведення
-        run: echo "Секрет: $DEMO_SECRET"
+        run: echo "Секрет = $DEMO_SECRET"
 
       - name: 2. Посимвольно, через пробіли
         run: echo "$DEMO_SECRET" | sed 's/./& /g'
